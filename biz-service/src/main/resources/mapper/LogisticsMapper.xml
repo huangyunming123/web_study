@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.biz.mapper.LogisticsMapper">
+
+    <resultMap id="BaseResultMap" type="com.demo.biz.entity.CrmLogistics">
+        <id column="id" property="id" />
+        <result column="order_no" property="orderNo" />
+        <result column="company_name" property="companyName" />
+        <result column="company_code" property="companyCode" />
+        <result column="tracking_no" property="trackingNo" />
+        <result column="status" property="status" />
+        <result column="operator_name" property="operatorName" />
+        <result column="ship_time" property="shipTime" />
+        <result column="delivered_time" property="deliveredTime" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, order_no, company_name, company_code, tracking_no, status, operator_name, ship_time, delivered_time, create_time
+    </sql>
+
+    <!-- 根据订单号查询 -->
+    <select id="selectByOrderNo" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM crm_logistics
+        WHERE order_no = #{orderNo}
+        LIMIT 1
+    </select>
+
+    <!-- 根据运单号查询 -->
+    <select id="selectByTrackingNo" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM crm_logistics
+        WHERE tracking_no = #{trackingNo}
+        LIMIT 1
+    </select>
+
+    <!-- 插入物流运单 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO crm_logistics (order_no, company_name, company_code, tracking_no, status, operator_name, ship_time, create_time)
+        VALUES (#{orderNo}, #{companyName}, #{companyCode}, #{trackingNo}, #{status}, #{operatorName}, #{shipTime}, NOW())
+    </insert>
+
+    <!-- 更新物流状态 -->
+    <update id="updateStatus">
+        UPDATE crm_logistics
+        SET status = #{status}
+        <if test="deliveredTime != null">
+            , delivered_time = #{deliveredTime}
+        </if>
+        WHERE tracking_no = #{trackingNo}
+    </update>
+
+</mapper>

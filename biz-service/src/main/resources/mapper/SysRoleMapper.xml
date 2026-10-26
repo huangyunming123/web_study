@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.biz.mapper.SysRoleMapper">
+
+    <resultMap id="BaseResultMap" type="com.demo.biz.entity.SysRole">
+        <id column="id" property="id" />
+        <result column="role_name" property="roleName" />
+        <result column="role_code" property="roleCode" />
+        <result column="description" property="description" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, role_name, role_code, description, create_time
+    </sql>
+
+    <!-- 查询全部角色 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sys_role
+        ORDER BY id ASC
+    </select>
+
+    <!-- 根据主键查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM sys_role
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户ID查询关联角色列表 -->
+    <select id="selectRolesByUserId" resultMap="BaseResultMap">
+        SELECT r.id, r.role_name, r.role_code, r.description, r.create_time
+        FROM sys_role r
+        INNER JOIN sys_user_role ur ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.id ASC
+    </select>
+
+    <!-- 删除指定用户的角色绑定 -->
+    <delete id="deleteUserRolesByUserId">
+        DELETE FROM sys_user_role WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 批量添加用户角色绑定 -->
+    <insert id="batchInsertUserRoles">
+        INSERT INTO sys_user_role (user_id, role_id)
+        VALUES
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userId}, #{roleId})
+        </foreach>
+    </insert>
+
+    <!-- 查询角色已绑定的权限ID列表 -->
+    <select id="selectPermissionIdsByRoleId" resultType="java.lang.Long">
+        SELECT permission_id
+        FROM sys_role_permission
+        WHERE role_id = #{roleId}
+    </select>
+
+    <!-- 删除指定角色的权限绑定 -->
+    <delete id="deleteRolePermissionsByRoleId">
+        DELETE FROM sys_role_permission WHERE role_id = #{roleId}
+    </delete>
+
+    <!-- 批量添加角色权限绑定 -->
+    <insert id="batchInsertRolePermissions">
+        INSERT INTO sys_role_permission (role_id, permission_id)
+        VALUES
+        <foreach collection="permissionIds" item="permId" separator=",">
+            (#{roleId}, #{permId})
+        </foreach>
+    </insert>
+
+</mapper>

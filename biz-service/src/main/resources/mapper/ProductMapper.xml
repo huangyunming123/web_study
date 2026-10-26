@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.biz.mapper.ProductMapper">
+
+    <resultMap id="BaseResultMap" type="com.demo.biz.entity.Product">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="category" property="category" />
+        <result column="price" property="price" />
+        <result column="stock" property="stock" />
+        <result column="status" property="status" />
+        <result column="reject_reason" property="rejectReason" />
+        <result column="description" property="description" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, category, price, stock, status, reject_reason, description, create_time, update_time
+    </sql>
+
+    <!-- 分页查询商品 (支持分类、状态与关键字搜索) -->
+    <select id="selectPageList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM product
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 统计总条数 -->
+    <select id="selectPageCount" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM product
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据 ID 查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM product
+        WHERE id = #{id}
+    </select>
+
+    <!-- 新增商品 (商品发布，开启主键自动回填) -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product (name, category, price, stock, status, reject_reason, description, create_time, update_time)
+        VALUES (#{name}, #{category}, #{price}, #{stock}, #{status}, #{rejectReason}, #{description}, NOW(), NOW())
+    </insert>
+
+    <!-- 修改商品 -->
+    <update id="update">
+        UPDATE product
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="description != null">description = #{description},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 修改商品状态 -->
+    <update id="updateStatus">
+        UPDATE product
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 审核商品 (通过或驳回) -->
+    <update id="audit">
+        UPDATE product
+        SET status = #{status}, reject_reason = #{rejectReason}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 扣减商品库存 (数据库层条件判断防超卖) -->
+    <update id="deductStock">
+        UPDATE product
+        SET stock = stock - #{count}, update_time = NOW()
+        WHERE id = #{id} AND stock >= #{count}
+    </update>
+
+    <!-- 物理删除商品 -->
+    <delete id="deleteById">
+        DELETE FROM product WHERE id = #{id}
+    </delete>
+
+</mapper>

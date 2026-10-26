@@ -1,0 +1,19 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+
+spring:
+  application:
+    name: gateway
+
+# 网关路由配置：将不同前缀的请求无损转发至对应的微服务
+gateway:
+  routes:
+    - prefix: /auth
+      uri: http://localhost:8081
+    - prefix: /api
+      uri: http://localhost:8082
