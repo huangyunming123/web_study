@@ -1,8 +1,10 @@
 server:
-  port: 808188
+  port: 8081
   servlet:
+#    2312321
     encoding:
-      charset: UTF-8
+#      e312312
+      charset: UTF-83333
       force: true
       enabled: true
 
